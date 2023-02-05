@@ -1,0 +1,1066 @@
+2023/02/05 20:34:39 - mmengine - INFO - 
+------------------------------------------------------------
+System environment:
+    sys.platform: linux
+    Python: 3.8.16 (default, Jan 17 2023, 23:13:24) [GCC 11.2.0]
+    CUDA available: True
+    numpy_random_seed: 2142730611
+    GPU 0: Tesla V100-SXM2-32GB
+    CUDA_HOME: /data/apps/cuda/11.1
+    NVCC: Cuda compilation tools, release 11.1, V11.1.105
+    GCC: gcc (GCC) 7.3.0
+    PyTorch: 1.10.0+cu111
+    PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) Math Kernel Library Version 2020.0.0 Product Build 20191122 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v2.2.3 (Git Hash 7336ca9f055cf1bfa13efb658fe15dc9b41f0740)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - LAPACK is enabled (usually provided by MKL)
+  - NNPACK is enabled
+  - CPU capability usage: AVX512
+  - CUDA Runtime 11.1
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86
+  - CuDNN 8.0.5
+  - Magma 2.5.2
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=11.1, CUDNN_VERSION=8.0.5, CXX_COMPILER=/opt/rh/devtoolset-7/root/usr/bin/c++, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_KINETO -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -DEDGE_PROFILER_USE_KINETO -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_VERSION=1.10.0, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, 
+
+    TorchVision: 0.11.0+cu111
+    OpenCV: 4.7.0
+    MMEngine: 0.5.0
+
+Runtime environment:
+    cudnn_benchmark: False
+    mp_cfg: {'mp_start_method': 'fork', 'opencv_num_threads': 0}
+    dist_cfg: {'backend': 'nccl'}
+    seed: None
+    deterministic: False
+    Distributed launcher: none
+    Distributed training: False
+    GPU number: 1
+------------------------------------------------------------
+
+2023/02/05 20:34:39 - mmengine - INFO - Config:
+model = dict(
+    type='ImageClassifier',
+    backbone=dict(
+        type='ResNet',
+        depth=18,
+        num_stages=4,
+        out_indices=(3, ),
+        style='pytorch'),
+    neck=dict(type='GlobalAveragePooling'),
+    head=dict(
+        type='LinearClsHead',
+        num_classes=5,
+        in_channels=512,
+        loss=dict(type='CrossEntropyLoss', loss_weight=1.0),
+        topk=1))
+dataset_type = 'CustomDataset'
+data_preprocessor = dict(
+    num_classes=5,
+    mean=[123.675, 116.28, 103.53],
+    std=[58.395, 57.12, 57.375],
+    to_rgb=True)
+train_dataloader = dict(
+    pin_memory=True,
+    persistent_workers=True,
+    collate_fn=dict(type='default_collate'),
+    batch_size=32,
+    num_workers=5,
+    dataset=dict(
+        type='CustomDataset',
+        data_root='data/handle_flower_dataset',
+        data_prefix='train',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='RandomResizedCrop', scale=224),
+            dict(type='PackClsInputs')
+        ]),
+    sampler=dict(type='DefaultSampler', shuffle=True))
+val_dataloader = dict(
+    pin_memory=True,
+    persistent_workers=True,
+    collate_fn=dict(type='default_collate'),
+    batch_size=32,
+    num_workers=5,
+    dataset=dict(
+        type='CustomDataset',
+        data_root='data/handle_flower_dataset',
+        data_prefix='val',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='ResizeEdge', scale=256, edge='short'),
+            dict(type='CenterCrop', crop_size=224),
+            dict(type='PackClsInputs')
+        ]),
+    sampler=dict(type='DefaultSampler', shuffle=False))
+val_evaluator = dict(type='Accuracy', topk=1)
+test_dataloader = dict(
+    pin_memory=True,
+    persistent_workers=True,
+    collate_fn=dict(type='default_collate'),
+    batch_size=32,
+    num_workers=5,
+    dataset=dict(
+        type='CustomDataset',
+        data_root='data/handle_flower_dataset',
+        data_prefix='val',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='ResizeEdge', scale=256, edge='short'),
+            dict(type='CenterCrop', crop_size=224),
+            dict(type='PackClsInputs')
+        ]),
+    sampler=dict(type='DefaultSampler', shuffle=False))
+test_evaluator = dict(type='Accuracy', topk=1)
+optim_wrapper = dict(
+    optimizer=dict(type='SGD', lr=0.0005, momentum=0.9, weight_decay=0.0001))
+param_scheduler = dict(
+    type='MultiStepLR', by_epoch=True, milestones=[30, 60, 90], gamma=0.1)
+train_cfg = dict(by_epoch=True, max_epochs=300, val_interval=1)
+val_cfg = dict()
+test_cfg = dict()
+auto_scale_lr = dict(base_batch_size=256)
+default_scope = 'mmcls'
+default_hooks = dict(
+    timer=dict(type='IterTimerHook'),
+    logger=dict(type='LoggerHook', interval=100),
+    param_scheduler=dict(type='ParamSchedulerHook'),
+    checkpoint=dict(type='CheckpointHook', interval=10),
+    sampler_seed=dict(type='DistSamplerSeedHook'),
+    visualization=dict(type='VisualizationHook', enable=False))
+env_cfg = dict(
+    cudnn_benchmark=False,
+    mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0),
+    dist_cfg=dict(backend='nccl'))
+vis_backends = [dict(type='LocalVisBackend')]
+visualizer = dict(
+    type='ClsVisualizer', vis_backends=[dict(type='LocalVisBackend')])
+log_level = 'INFO'
+load_from = 'resnet18_8xb32_in1k_20210831-fbbb1da6.pth'
+resume = False
+randomness = dict(seed=None, deterministic=False)
+launcher = 'none'
+work_dir = 'works/flower2/'
+
+2023/02/05 20:34:39 - mmengine - WARNING - The "visualizer" registry in mmcls did not set import location. Fallback to call `mmcls.utils.register_all_modules` instead.
+2023/02/05 20:34:39 - mmengine - WARNING - The "vis_backend" registry in mmcls did not set import location. Fallback to call `mmcls.utils.register_all_modules` instead.
+2023/02/05 20:34:40 - mmengine - WARNING - The "model" registry in mmcls did not set import location. Fallback to call `mmcls.utils.register_all_modules` instead.
+2023/02/05 20:34:54 - mmengine - INFO - Distributed training is not used, all SyncBatchNorm (SyncBN) layers in the model will be automatically reverted to BatchNormXd layers if they are used.
+2023/02/05 20:34:54 - mmengine - WARNING - The "hook" registry in mmcls did not set import location. Fallback to call `mmcls.utils.register_all_modules` instead.
+2023/02/05 20:34:54 - mmengine - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+before_train:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DistSamplerSeedHook                
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) IterTimerHook                      
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_val_epoch:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+before_val_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) VisualizationHook                  
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_val_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_test_epoch:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+before_test_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_test_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) VisualizationHook                  
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_test_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_run:
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+2023/02/05 20:34:54 - mmengine - WARNING - The "dataset" registry in mmcls did not set import location. Fallback to call `mmcls.utils.register_all_modules` instead.
+2023/02/05 20:34:54 - mmengine - WARNING - The "transform" registry in mmcls did not set import location. Fallback to call `mmcls.utils.register_all_modules` instead.
+2023/02/05 20:34:54 - mmengine - WARNING - The "data sampler" registry in mmcls did not set import location. Fallback to call `mmcls.utils.register_all_modules` instead.
+2023/02/05 20:34:54 - mmengine - WARNING - The "optimizer wrapper constructor" registry in mmcls did not set import location. Fallback to call `mmcls.utils.register_all_modules` instead.
+2023/02/05 20:34:54 - mmengine - WARNING - The "optimizer" registry in mmcls did not set import location. Fallback to call `mmcls.utils.register_all_modules` instead.
+2023/02/05 20:34:54 - mmengine - WARNING - The "optimizer_wrapper" registry in mmcls did not set import location. Fallback to call `mmcls.utils.register_all_modules` instead.
+2023/02/05 20:34:54 - mmengine - WARNING - The "parameter scheduler" registry in mmcls did not set import location. Fallback to call `mmcls.utils.register_all_modules` instead.
+2023/02/05 20:34:54 - mmengine - WARNING - The "metric" registry in mmcls did not set import location. Fallback to call `mmcls.utils.register_all_modules` instead.
+2023/02/05 20:34:54 - mmengine - WARNING - The "weight initializer" registry in mmcls did not set import location. Fallback to call `mmcls.utils.register_all_modules` instead.
+Name of parameter - Initialization information
+
+backbone.conv1.weight - torch.Size([64, 3, 7, 7]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.bn1.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.bn1.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer1.0.conv1.weight - torch.Size([64, 64, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer1.0.bn1.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer1.0.bn1.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer1.0.conv2.weight - torch.Size([64, 64, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer1.0.bn2.weight - torch.Size([64]): 
+Initialized by user-defined `init_weights` in ResNet  
+
+backbone.layer1.0.bn2.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer1.1.conv1.weight - torch.Size([64, 64, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer1.1.bn1.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer1.1.bn1.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer1.1.conv2.weight - torch.Size([64, 64, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer1.1.bn2.weight - torch.Size([64]): 
+Initialized by user-defined `init_weights` in ResNet  
+
+backbone.layer1.1.bn2.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer2.0.conv1.weight - torch.Size([128, 64, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer2.0.bn1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer2.0.bn1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer2.0.conv2.weight - torch.Size([128, 128, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer2.0.bn2.weight - torch.Size([128]): 
+Initialized by user-defined `init_weights` in ResNet  
+
+backbone.layer2.0.bn2.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer2.0.downsample.0.weight - torch.Size([128, 64, 1, 1]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer2.0.downsample.1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer2.0.downsample.1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer2.1.conv1.weight - torch.Size([128, 128, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer2.1.bn1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer2.1.bn1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer2.1.conv2.weight - torch.Size([128, 128, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer2.1.bn2.weight - torch.Size([128]): 
+Initialized by user-defined `init_weights` in ResNet  
+
+backbone.layer2.1.bn2.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer3.0.conv1.weight - torch.Size([256, 128, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer3.0.bn1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer3.0.bn1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer3.0.conv2.weight - torch.Size([256, 256, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer3.0.bn2.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in ResNet  
+
+backbone.layer3.0.bn2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer3.0.downsample.0.weight - torch.Size([256, 128, 1, 1]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer3.0.downsample.1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer3.0.downsample.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer3.1.conv1.weight - torch.Size([256, 256, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer3.1.bn1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer3.1.bn1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer3.1.conv2.weight - torch.Size([256, 256, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer3.1.bn2.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in ResNet  
+
+backbone.layer3.1.bn2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer4.0.conv1.weight - torch.Size([512, 256, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer4.0.bn1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer4.0.bn1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer4.0.conv2.weight - torch.Size([512, 512, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer4.0.bn2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in ResNet  
+
+backbone.layer4.0.bn2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer4.0.downsample.0.weight - torch.Size([512, 256, 1, 1]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer4.0.downsample.1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer4.0.downsample.1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer4.1.conv1.weight - torch.Size([512, 512, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer4.1.bn1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer4.1.bn1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer4.1.conv2.weight - torch.Size([512, 512, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer4.1.bn2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in ResNet  
+
+backbone.layer4.1.bn2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+head.fc.weight - torch.Size([5, 512]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+head.fc.bias - torch.Size([5]): 
+NormalInit: mean=0, std=0.01, bias=0 
+2023/02/05 20:34:54 - mmengine - INFO - Load checkpoint from resnet18_8xb32_in1k_20210831-fbbb1da6.pth
+2023/02/05 20:34:54 - mmengine - INFO - Checkpoints will be saved to /data/run01/scv9224/mmclassification/works/flower2.
+2023/02/05 20:34:58 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:34:59 - mmengine - INFO - Epoch(val) [1][18/18]  accuracy/top1: 90.2098
+2023/02/05 20:35:02 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:02 - mmengine - INFO - Epoch(val) [2][18/18]  accuracy/top1: 92.8322
+2023/02/05 20:35:05 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:05 - mmengine - INFO - Epoch(val) [3][18/18]  accuracy/top1: 91.9580
+2023/02/05 20:35:08 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:08 - mmengine - INFO - Epoch(val) [4][18/18]  accuracy/top1: 93.7063
+2023/02/05 20:35:11 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:11 - mmengine - INFO - Epoch(val) [5][18/18]  accuracy/top1: 93.5315
+2023/02/05 20:35:14 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:14 - mmengine - INFO - Epoch(val) [6][18/18]  accuracy/top1: 94.2308
+2023/02/05 20:35:17 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:17 - mmengine - INFO - Epoch(val) [7][18/18]  accuracy/top1: 93.8811
+2023/02/05 20:35:20 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:20 - mmengine - INFO - Epoch(val) [8][18/18]  accuracy/top1: 94.0559
+2023/02/05 20:35:23 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:23 - mmengine - INFO - Epoch(val) [9][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:35:26 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:26 - mmengine - INFO - Saving checkpoint at 10 epochs
+2023/02/05 20:35:27 - mmengine - INFO - Epoch(val) [10][18/18]  accuracy/top1: 94.7552
+2023/02/05 20:35:29 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:29 - mmengine - INFO - Epoch(val) [11][18/18]  accuracy/top1: 94.7552
+2023/02/05 20:35:32 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:32 - mmengine - INFO - Epoch(val) [12][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:35:35 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:35 - mmengine - INFO - Epoch(val) [13][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:35:38 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:38 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:38 - mmengine - INFO - Epoch(val) [14][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:35:41 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:41 - mmengine - INFO - Epoch(val) [15][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:35:44 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:44 - mmengine - INFO - Epoch(val) [16][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:35:47 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:47 - mmengine - INFO - Epoch(val) [17][18/18]  accuracy/top1: 96.1538
+2023/02/05 20:35:50 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:50 - mmengine - INFO - Epoch(val) [18][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:35:53 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:53 - mmengine - INFO - Epoch(val) [19][18/18]  accuracy/top1: 94.7552
+2023/02/05 20:35:56 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:35:56 - mmengine - INFO - Saving checkpoint at 20 epochs
+2023/02/05 20:35:57 - mmengine - INFO - Epoch(val) [20][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:35:59 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:00 - mmengine - INFO - Epoch(val) [21][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:36:02 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:03 - mmengine - INFO - Epoch(val) [22][18/18]  accuracy/top1: 94.7552
+2023/02/05 20:36:05 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:06 - mmengine - INFO - Epoch(val) [23][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:36:08 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:09 - mmengine - INFO - Epoch(val) [24][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:36:11 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:12 - mmengine - INFO - Epoch(val) [25][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:36:14 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:15 - mmengine - INFO - Epoch(val) [26][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:36:17 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:18 - mmengine - INFO - Epoch(val) [27][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:36:20 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:20 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:21 - mmengine - INFO - Epoch(val) [28][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:36:23 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:24 - mmengine - INFO - Epoch(val) [29][18/18]  accuracy/top1: 94.7552
+2023/02/05 20:36:26 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:26 - mmengine - INFO - Saving checkpoint at 30 epochs
+2023/02/05 20:36:27 - mmengine - INFO - Epoch(val) [30][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:36:30 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:30 - mmengine - INFO - Epoch(val) [31][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:36:33 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:33 - mmengine - INFO - Epoch(val) [32][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:36:36 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:36 - mmengine - INFO - Epoch(val) [33][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:36:39 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:39 - mmengine - INFO - Epoch(val) [34][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:36:42 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:42 - mmengine - INFO - Epoch(val) [35][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:36:44 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:45 - mmengine - INFO - Epoch(val) [36][18/18]  accuracy/top1: 94.5804
+2023/02/05 20:36:48 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:48 - mmengine - INFO - Epoch(val) [37][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:36:51 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:51 - mmengine - INFO - Epoch(val) [38][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:36:53 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:54 - mmengine - INFO - Epoch(val) [39][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:36:56 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:36:56 - mmengine - INFO - Saving checkpoint at 40 epochs
+2023/02/05 20:36:57 - mmengine - INFO - Epoch(val) [40][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:37:00 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:00 - mmengine - INFO - Epoch(val) [41][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:37:02 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:03 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:03 - mmengine - INFO - Epoch(val) [42][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:37:06 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:06 - mmengine - INFO - Epoch(val) [43][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:37:09 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:09 - mmengine - INFO - Epoch(val) [44][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:37:12 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:12 - mmengine - INFO - Epoch(val) [45][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:37:15 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:15 - mmengine - INFO - Epoch(val) [46][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:37:18 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:18 - mmengine - INFO - Epoch(val) [47][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:37:21 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:21 - mmengine - INFO - Epoch(val) [48][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:37:24 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:24 - mmengine - INFO - Epoch(val) [49][18/18]  accuracy/top1: 94.7552
+2023/02/05 20:37:27 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:27 - mmengine - INFO - Saving checkpoint at 50 epochs
+2023/02/05 20:37:28 - mmengine - INFO - Epoch(val) [50][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:37:30 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:31 - mmengine - INFO - Epoch(val) [51][18/18]  accuracy/top1: 95.9790
+2023/02/05 20:37:33 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:34 - mmengine - INFO - Epoch(val) [52][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:37:36 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:37 - mmengine - INFO - Epoch(val) [53][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:37:39 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:40 - mmengine - INFO - Epoch(val) [54][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:37:42 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:43 - mmengine - INFO - Epoch(val) [55][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:37:44 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:45 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:46 - mmengine - INFO - Epoch(val) [56][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:37:48 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:49 - mmengine - INFO - Epoch(val) [57][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:37:51 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:52 - mmengine - INFO - Epoch(val) [58][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:37:54 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:55 - mmengine - INFO - Epoch(val) [59][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:37:57 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:37:57 - mmengine - INFO - Saving checkpoint at 60 epochs
+2023/02/05 20:37:58 - mmengine - INFO - Epoch(val) [60][18/18]  accuracy/top1: 95.9790
+2023/02/05 20:38:01 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:01 - mmengine - INFO - Epoch(val) [61][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:38:04 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:04 - mmengine - INFO - Epoch(val) [62][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:38:07 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:07 - mmengine - INFO - Epoch(val) [63][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:38:10 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:10 - mmengine - INFO - Epoch(val) [64][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:38:13 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:13 - mmengine - INFO - Epoch(val) [65][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:38:16 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:16 - mmengine - INFO - Epoch(val) [66][18/18]  accuracy/top1: 95.9790
+2023/02/05 20:38:19 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:19 - mmengine - INFO - Epoch(val) [67][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:38:22 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:22 - mmengine - INFO - Epoch(val) [68][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:38:25 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:25 - mmengine - INFO - Epoch(val) [69][18/18]  accuracy/top1: 94.7552
+2023/02/05 20:38:26 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:28 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:28 - mmengine - INFO - Saving checkpoint at 70 epochs
+2023/02/05 20:38:28 - mmengine - INFO - Epoch(val) [70][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:38:31 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:31 - mmengine - INFO - Epoch(val) [71][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:38:34 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:34 - mmengine - INFO - Epoch(val) [72][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:38:37 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:37 - mmengine - INFO - Epoch(val) [73][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:38:40 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:41 - mmengine - INFO - Epoch(val) [74][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:38:43 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:44 - mmengine - INFO - Epoch(val) [75][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:38:46 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:47 - mmengine - INFO - Epoch(val) [76][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:38:49 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:50 - mmengine - INFO - Epoch(val) [77][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:38:52 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:53 - mmengine - INFO - Epoch(val) [78][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:38:55 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:56 - mmengine - INFO - Epoch(val) [79][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:38:58 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:38:58 - mmengine - INFO - Saving checkpoint at 80 epochs
+2023/02/05 20:38:59 - mmengine - INFO - Epoch(val) [80][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:39:02 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:02 - mmengine - INFO - Epoch(val) [81][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:39:05 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:05 - mmengine - INFO - Epoch(val) [82][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:39:08 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:08 - mmengine - INFO - Epoch(val) [83][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:39:09 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:11 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:11 - mmengine - INFO - Epoch(val) [84][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:39:14 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:14 - mmengine - INFO - Epoch(val) [85][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:39:17 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:17 - mmengine - INFO - Epoch(val) [86][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:39:20 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:20 - mmengine - INFO - Epoch(val) [87][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:39:23 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:23 - mmengine - INFO - Epoch(val) [88][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:39:26 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:26 - mmengine - INFO - Epoch(val) [89][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:39:29 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:29 - mmengine - INFO - Saving checkpoint at 90 epochs
+2023/02/05 20:39:30 - mmengine - INFO - Epoch(val) [90][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:39:32 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:33 - mmengine - INFO - Epoch(val) [91][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:39:35 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:36 - mmengine - INFO - Epoch(val) [92][18/18]  accuracy/top1: 95.9790
+2023/02/05 20:39:38 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:39 - mmengine - INFO - Epoch(val) [93][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:39:41 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:42 - mmengine - INFO - Epoch(val) [94][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:39:44 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:45 - mmengine - INFO - Epoch(val) [95][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:39:47 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:48 - mmengine - INFO - Epoch(val) [96][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:39:50 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:51 - mmengine - INFO - Epoch(val) [97][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:39:51 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:53 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:54 - mmengine - INFO - Epoch(val) [98][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:39:56 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:57 - mmengine - INFO - Epoch(val) [99][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:39:59 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:39:59 - mmengine - INFO - Saving checkpoint at 100 epochs
+2023/02/05 20:40:00 - mmengine - INFO - Epoch(val) [100][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:40:03 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:03 - mmengine - INFO - Epoch(val) [101][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:40:06 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:06 - mmengine - INFO - Epoch(val) [102][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:40:09 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:09 - mmengine - INFO - Epoch(val) [103][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:40:12 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:12 - mmengine - INFO - Epoch(val) [104][18/18]  accuracy/top1: 96.3287
+2023/02/05 20:40:15 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:15 - mmengine - INFO - Epoch(val) [105][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:40:18 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:18 - mmengine - INFO - Epoch(val) [106][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:40:21 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:21 - mmengine - INFO - Epoch(val) [107][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:40:24 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:24 - mmengine - INFO - Epoch(val) [108][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:40:27 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:27 - mmengine - INFO - Epoch(val) [109][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:40:30 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:30 - mmengine - INFO - Saving checkpoint at 110 epochs
+2023/02/05 20:40:31 - mmengine - INFO - Epoch(val) [110][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:40:33 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:34 - mmengine - INFO - Epoch(val) [111][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:40:34 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:36 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:37 - mmengine - INFO - Epoch(val) [112][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:40:39 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:40 - mmengine - INFO - Epoch(val) [113][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:40:42 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:43 - mmengine - INFO - Epoch(val) [114][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:40:45 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:46 - mmengine - INFO - Epoch(val) [115][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:40:48 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:49 - mmengine - INFO - Epoch(val) [116][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:40:51 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:52 - mmengine - INFO - Epoch(val) [117][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:40:54 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:55 - mmengine - INFO - Epoch(val) [118][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:40:57 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:40:58 - mmengine - INFO - Epoch(val) [119][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:41:00 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:00 - mmengine - INFO - Saving checkpoint at 120 epochs
+2023/02/05 20:41:01 - mmengine - INFO - Epoch(val) [120][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:41:04 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:04 - mmengine - INFO - Epoch(val) [121][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:41:07 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:07 - mmengine - INFO - Epoch(val) [122][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:41:10 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:10 - mmengine - INFO - Epoch(val) [123][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:41:13 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:13 - mmengine - INFO - Epoch(val) [124][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:41:16 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:16 - mmengine - INFO - Epoch(val) [125][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:41:19 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:19 - mmengine - INFO - Epoch(val) [126][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:41:22 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:22 - mmengine - INFO - Epoch(val) [127][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:41:25 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:25 - mmengine - INFO - Epoch(val) [128][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:41:28 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:28 - mmengine - INFO - Epoch(val) [129][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:41:31 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:31 - mmengine - INFO - Saving checkpoint at 130 epochs
+2023/02/05 20:41:32 - mmengine - INFO - Epoch(val) [130][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:41:34 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:34 - mmengine - INFO - Epoch(val) [131][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:41:37 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:37 - mmengine - INFO - Epoch(val) [132][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:41:40 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:40 - mmengine - INFO - Epoch(val) [133][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:41:43 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:43 - mmengine - INFO - Epoch(val) [134][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:41:47 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:47 - mmengine - INFO - Epoch(val) [135][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:41:50 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:50 - mmengine - INFO - Epoch(val) [136][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:41:53 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:53 - mmengine - INFO - Epoch(val) [137][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:41:56 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:56 - mmengine - INFO - Epoch(val) [138][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:41:59 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:59 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:41:59 - mmengine - INFO - Epoch(val) [139][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:42:02 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:02 - mmengine - INFO - Saving checkpoint at 140 epochs
+2023/02/05 20:42:03 - mmengine - INFO - Epoch(val) [140][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:42:05 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:06 - mmengine - INFO - Epoch(val) [141][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:42:08 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:09 - mmengine - INFO - Epoch(val) [142][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:42:11 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:12 - mmengine - INFO - Epoch(val) [143][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:42:14 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:15 - mmengine - INFO - Epoch(val) [144][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:42:17 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:18 - mmengine - INFO - Epoch(val) [145][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:42:20 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:21 - mmengine - INFO - Epoch(val) [146][18/18]  accuracy/top1: 95.9790
+2023/02/05 20:42:23 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:24 - mmengine - INFO - Epoch(val) [147][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:42:26 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:27 - mmengine - INFO - Epoch(val) [148][18/18]  accuracy/top1: 96.1538
+2023/02/05 20:42:29 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:30 - mmengine - INFO - Epoch(val) [149][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:42:32 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:32 - mmengine - INFO - Saving checkpoint at 150 epochs
+2023/02/05 20:42:33 - mmengine - INFO - Epoch(val) [150][18/18]  accuracy/top1: 95.9790
+2023/02/05 20:42:36 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:36 - mmengine - INFO - Epoch(val) [151][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:42:39 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:39 - mmengine - INFO - Epoch(val) [152][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:42:41 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:42 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:42 - mmengine - INFO - Epoch(val) [153][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:42:45 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:45 - mmengine - INFO - Epoch(val) [154][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:42:48 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:48 - mmengine - INFO - Epoch(val) [155][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:42:51 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:51 - mmengine - INFO - Epoch(val) [156][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:42:54 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:54 - mmengine - INFO - Epoch(val) [157][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:42:57 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:42:57 - mmengine - INFO - Epoch(val) [158][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:43:00 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:00 - mmengine - INFO - Epoch(val) [159][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:43:03 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:03 - mmengine - INFO - Saving checkpoint at 160 epochs
+2023/02/05 20:43:04 - mmengine - INFO - Epoch(val) [160][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:43:06 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:07 - mmengine - INFO - Epoch(val) [161][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:43:09 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:10 - mmengine - INFO - Epoch(val) [162][18/18]  accuracy/top1: 95.9790
+2023/02/05 20:43:12 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:13 - mmengine - INFO - Epoch(val) [163][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:43:15 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:16 - mmengine - INFO - Epoch(val) [164][18/18]  accuracy/top1: 95.9790
+2023/02/05 20:43:18 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:19 - mmengine - INFO - Epoch(val) [165][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:43:21 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:22 - mmengine - INFO - Epoch(val) [166][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:43:23 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:24 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:25 - mmengine - INFO - Epoch(val) [167][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:43:27 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:28 - mmengine - INFO - Epoch(val) [168][18/18]  accuracy/top1: 96.1538
+2023/02/05 20:43:30 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:31 - mmengine - INFO - Epoch(val) [169][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:43:33 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:33 - mmengine - INFO - Saving checkpoint at 170 epochs
+2023/02/05 20:43:34 - mmengine - INFO - Epoch(val) [170][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:43:37 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:37 - mmengine - INFO - Epoch(val) [171][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:43:40 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:40 - mmengine - INFO - Epoch(val) [172][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:43:43 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:43 - mmengine - INFO - Epoch(val) [173][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:43:46 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:46 - mmengine - INFO - Epoch(val) [174][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:43:49 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:49 - mmengine - INFO - Epoch(val) [175][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:43:52 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:52 - mmengine - INFO - Epoch(val) [176][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:43:55 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:55 - mmengine - INFO - Epoch(val) [177][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:43:58 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:43:58 - mmengine - INFO - Epoch(val) [178][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:44:01 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:01 - mmengine - INFO - Epoch(val) [179][18/18]  accuracy/top1: 95.9790
+2023/02/05 20:44:04 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:04 - mmengine - INFO - Saving checkpoint at 180 epochs
+2023/02/05 20:44:05 - mmengine - INFO - Epoch(val) [180][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:44:06 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:07 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:08 - mmengine - INFO - Epoch(val) [181][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:44:10 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:11 - mmengine - INFO - Epoch(val) [182][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:44:13 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:14 - mmengine - INFO - Epoch(val) [183][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:44:16 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:17 - mmengine - INFO - Epoch(val) [184][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:44:19 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:20 - mmengine - INFO - Epoch(val) [185][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:44:22 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:23 - mmengine - INFO - Epoch(val) [186][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:44:25 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:26 - mmengine - INFO - Epoch(val) [187][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:44:28 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:29 - mmengine - INFO - Epoch(val) [188][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:44:31 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:32 - mmengine - INFO - Epoch(val) [189][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:44:34 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:34 - mmengine - INFO - Saving checkpoint at 190 epochs
+2023/02/05 20:44:35 - mmengine - INFO - Epoch(val) [190][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:44:38 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:38 - mmengine - INFO - Epoch(val) [191][18/18]  accuracy/top1: 94.7552
+2023/02/05 20:44:41 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:41 - mmengine - INFO - Epoch(val) [192][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:44:44 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:44 - mmengine - INFO - Epoch(val) [193][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:44:47 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:47 - mmengine - INFO - Epoch(val) [194][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:44:49 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:50 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:50 - mmengine - INFO - Epoch(val) [195][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:44:53 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:53 - mmengine - INFO - Epoch(val) [196][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:44:56 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:56 - mmengine - INFO - Epoch(val) [197][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:44:59 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:44:59 - mmengine - INFO - Epoch(val) [198][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:45:02 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:02 - mmengine - INFO - Epoch(val) [199][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:45:05 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:05 - mmengine - INFO - Saving checkpoint at 200 epochs
+2023/02/05 20:45:06 - mmengine - INFO - Epoch(val) [200][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:45:09 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:09 - mmengine - INFO - Epoch(val) [201][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:45:12 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:12 - mmengine - INFO - Epoch(val) [202][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:45:15 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:15 - mmengine - INFO - Epoch(val) [203][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:45:18 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:18 - mmengine - INFO - Epoch(val) [204][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:45:21 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:21 - mmengine - INFO - Epoch(val) [205][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:45:24 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:24 - mmengine - INFO - Epoch(val) [206][18/18]  accuracy/top1: 95.9790
+2023/02/05 20:45:27 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:27 - mmengine - INFO - Epoch(val) [207][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:45:30 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:30 - mmengine - INFO - Epoch(val) [208][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:45:31 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:33 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:33 - mmengine - INFO - Epoch(val) [209][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:45:36 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:36 - mmengine - INFO - Saving checkpoint at 210 epochs
+2023/02/05 20:45:37 - mmengine - INFO - Epoch(val) [210][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:45:39 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:40 - mmengine - INFO - Epoch(val) [211][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:45:42 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:43 - mmengine - INFO - Epoch(val) [212][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:45:45 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:46 - mmengine - INFO - Epoch(val) [213][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:45:48 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:49 - mmengine - INFO - Epoch(val) [214][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:45:51 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:52 - mmengine - INFO - Epoch(val) [215][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:45:54 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:55 - mmengine - INFO - Epoch(val) [216][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:45:57 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:45:58 - mmengine - INFO - Epoch(val) [217][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:46:00 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:01 - mmengine - INFO - Epoch(val) [218][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:46:03 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:04 - mmengine - INFO - Epoch(val) [219][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:46:06 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:06 - mmengine - INFO - Saving checkpoint at 220 epochs
+2023/02/05 20:46:07 - mmengine - INFO - Epoch(val) [220][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:46:10 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:10 - mmengine - INFO - Epoch(val) [221][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:46:13 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:13 - mmengine - INFO - Epoch(val) [222][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:46:14 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:16 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:16 - mmengine - INFO - Epoch(val) [223][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:46:19 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:19 - mmengine - INFO - Epoch(val) [224][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:46:22 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:22 - mmengine - INFO - Epoch(val) [225][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:46:25 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:25 - mmengine - INFO - Epoch(val) [226][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:46:28 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:28 - mmengine - INFO - Epoch(val) [227][18/18]  accuracy/top1: 96.3287
+2023/02/05 20:46:31 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:31 - mmengine - INFO - Epoch(val) [228][18/18]  accuracy/top1: 95.9790
+2023/02/05 20:46:34 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:34 - mmengine - INFO - Epoch(val) [229][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:46:37 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:37 - mmengine - INFO - Saving checkpoint at 230 epochs
+2023/02/05 20:46:38 - mmengine - INFO - Epoch(val) [230][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:46:40 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:41 - mmengine - INFO - Epoch(val) [231][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:46:43 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:44 - mmengine - INFO - Epoch(val) [232][18/18]  accuracy/top1: 94.7552
+2023/02/05 20:46:46 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:47 - mmengine - INFO - Epoch(val) [233][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:46:49 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:50 - mmengine - INFO - Epoch(val) [234][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:46:52 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:53 - mmengine - INFO - Epoch(val) [235][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:46:55 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:56 - mmengine - INFO - Epoch(val) [236][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:46:56 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:58 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:46:59 - mmengine - INFO - Epoch(val) [237][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:47:01 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:02 - mmengine - INFO - Epoch(val) [238][18/18]  accuracy/top1: 95.9790
+2023/02/05 20:47:04 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:05 - mmengine - INFO - Epoch(val) [239][18/18]  accuracy/top1: 94.7552
+2023/02/05 20:47:07 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:07 - mmengine - INFO - Saving checkpoint at 240 epochs
+2023/02/05 20:47:08 - mmengine - INFO - Epoch(val) [240][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:47:11 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:11 - mmengine - INFO - Epoch(val) [241][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:47:14 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:14 - mmengine - INFO - Epoch(val) [242][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:47:17 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:17 - mmengine - INFO - Epoch(val) [243][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:47:20 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:20 - mmengine - INFO - Epoch(val) [244][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:47:23 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:23 - mmengine - INFO - Epoch(val) [245][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:47:26 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:26 - mmengine - INFO - Epoch(val) [246][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:47:29 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:29 - mmengine - INFO - Epoch(val) [247][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:47:32 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:32 - mmengine - INFO - Epoch(val) [248][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:47:35 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:35 - mmengine - INFO - Epoch(val) [249][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:47:38 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:38 - mmengine - INFO - Saving checkpoint at 250 epochs
+2023/02/05 20:47:39 - mmengine - INFO - Epoch(val) [250][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:47:41 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:42 - mmengine - INFO - Epoch(val) [251][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:47:44 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:45 - mmengine - INFO - Epoch(val) [252][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:47:47 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:48 - mmengine - INFO - Epoch(val) [253][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:47:50 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:51 - mmengine - INFO - Epoch(val) [254][18/18]  accuracy/top1: 94.7552
+2023/02/05 20:47:53 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:54 - mmengine - INFO - Epoch(val) [255][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:47:56 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:47:57 - mmengine - INFO - Epoch(val) [256][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:47:59 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:00 - mmengine - INFO - Epoch(val) [257][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:48:02 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:03 - mmengine - INFO - Epoch(val) [258][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:48:05 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:06 - mmengine - INFO - Epoch(val) [259][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:48:08 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:08 - mmengine - INFO - Saving checkpoint at 260 epochs
+2023/02/05 20:48:09 - mmengine - INFO - Epoch(val) [260][18/18]  accuracy/top1: 95.9790
+2023/02/05 20:48:12 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:12 - mmengine - INFO - Epoch(val) [261][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:48:15 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:15 - mmengine - INFO - Epoch(val) [262][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:48:18 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:18 - mmengine - INFO - Epoch(val) [263][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:48:21 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:21 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:21 - mmengine - INFO - Epoch(val) [264][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:48:24 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:24 - mmengine - INFO - Epoch(val) [265][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:48:27 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:27 - mmengine - INFO - Epoch(val) [266][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:48:30 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:30 - mmengine - INFO - Epoch(val) [267][18/18]  accuracy/top1: 95.9790
+2023/02/05 20:48:33 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:33 - mmengine - INFO - Epoch(val) [268][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:48:36 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:36 - mmengine - INFO - Epoch(val) [269][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:48:39 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:39 - mmengine - INFO - Saving checkpoint at 270 epochs
+2023/02/05 20:48:40 - mmengine - INFO - Epoch(val) [270][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:48:42 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:43 - mmengine - INFO - Epoch(val) [271][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:48:45 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:46 - mmengine - INFO - Epoch(val) [272][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:48:48 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:49 - mmengine - INFO - Epoch(val) [273][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:48:51 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:52 - mmengine - INFO - Epoch(val) [274][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:48:54 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:55 - mmengine - INFO - Epoch(val) [275][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:48:57 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:48:58 - mmengine - INFO - Epoch(val) [276][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:49:00 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:01 - mmengine - INFO - Epoch(val) [277][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:49:03 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:03 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:04 - mmengine - INFO - Epoch(val) [278][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:49:06 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:07 - mmengine - INFO - Epoch(val) [279][18/18]  accuracy/top1: 94.7552
+2023/02/05 20:49:09 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:09 - mmengine - INFO - Saving checkpoint at 280 epochs
+2023/02/05 20:49:10 - mmengine - INFO - Epoch(val) [280][18/18]  accuracy/top1: 95.1049
+2023/02/05 20:49:13 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:13 - mmengine - INFO - Epoch(val) [281][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:49:16 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:16 - mmengine - INFO - Epoch(val) [282][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:49:19 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:19 - mmengine - INFO - Epoch(val) [283][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:49:22 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:22 - mmengine - INFO - Epoch(val) [284][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:49:25 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:25 - mmengine - INFO - Epoch(val) [285][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:49:28 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:28 - mmengine - INFO - Epoch(val) [286][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:49:31 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:31 - mmengine - INFO - Epoch(val) [287][18/18]  accuracy/top1: 95.4545
+2023/02/05 20:49:34 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:34 - mmengine - INFO - Epoch(val) [288][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:49:37 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:37 - mmengine - INFO - Epoch(val) [289][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:49:40 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:40 - mmengine - INFO - Saving checkpoint at 290 epochs
+2023/02/05 20:49:41 - mmengine - INFO - Epoch(val) [290][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:49:43 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:44 - mmengine - INFO - Epoch(val) [291][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:49:46 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:46 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:47 - mmengine - INFO - Epoch(val) [292][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:49:49 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:50 - mmengine - INFO - Epoch(val) [293][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:49:52 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:53 - mmengine - INFO - Epoch(val) [294][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:49:55 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:56 - mmengine - INFO - Epoch(val) [295][18/18]  accuracy/top1: 95.8042
+2023/02/05 20:49:58 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:49:59 - mmengine - INFO - Epoch(val) [296][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:50:01 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:50:02 - mmengine - INFO - Epoch(val) [297][18/18]  accuracy/top1: 95.6294
+2023/02/05 20:50:04 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:50:05 - mmengine - INFO - Epoch(val) [298][18/18]  accuracy/top1: 94.9301
+2023/02/05 20:50:07 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:50:08 - mmengine - INFO - Epoch(val) [299][18/18]  accuracy/top1: 95.2797
+2023/02/05 20:50:10 - mmengine - INFO - Exp name: flower_resnet18_20230205_203437
+2023/02/05 20:50:10 - mmengine - INFO - Saving checkpoint at 300 epochs
+2023/02/05 20:50:11 - mmengine - INFO - Epoch(val) [300][18/18]  accuracy/top1: 95.1049
